@@ -1,0 +1,40 @@
+version: '3.7'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=thomas
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=item_db
+    volumes:
+      - /e/pg-storage:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - spring
+
+  spring-boot:
+    container_name: spring_boot_container
+    image: spring-boot-dev:1.0.0
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/item_db?createDatabaseIfNotExist=true&autoReconnect=true&useSSL=false&useUnicode=yes&characterEncoding=UTF-8
+      - SPRING_DATASOURCE_USERNAME=thomas
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - "5555:8080"
+    networks:
+      - spring
+
+networks:
+  spring:
+    driver: bridge

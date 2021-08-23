@@ -1,0 +1,56 @@
+# Documentation
+# https://docs.docker.com/compose/compose-file
+
+version: '3.7'
+
+services:
+
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+    environment:
+      - MAX_HEAP_SIZE=256M
+      - HEAP_NEWSIZE=128M
+    restart: always
+    volumes:
+      - /e/cassandra/data:/var/lib/cassandra
+    networks:
+      - backend
+
+  cassandra-load-keyspace:
+    image: cassandra:latest
+    container_name: cassandra-load-keyspace
+    depends_on:
+      - cassandra
+    volumes:
+      - ./cassandra_schema.cql:/schema.cql
+    networks:
+      - backend
+    command: /bin/bash -c "sleep 60 && echo loading cassandra keyspace && cqlsh cassandra -f /schema.cql"
+
+  dev:
+    container_name: backend-dev
+    image: backend-dev:1.0.0
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: npm run start:debug
+    depends_on:
+      - cassandra
+      - cassandra-load-keyspace
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge

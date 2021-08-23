@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: "org.hibernate.dialect.PostgreSQL81Dialect"
+  rabbitmq:
+    host:
+    queue:
+    username:
+    password:
+  main:
+    allow-bean-definition-overriding: true
+  jackson:
+    serialization:
+      write_dates_as_timestamps: false
+
+server:
+  port:5555
